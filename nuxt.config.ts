@@ -18,6 +18,13 @@ export default defineNuxtConfig({
       meta: [
         { name: 'apple-mobile-web-app-title', content: 'Toffe Kerels' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:image', content: 'https://toffekerels.nl/og-image.png' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:image:alt', content: 'Toffe Kerels – Showcase voor de tofste bedrijven' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:image', content: 'https://toffekerels.nl/og-image.png' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
