@@ -1,0 +1,10 @@
+---
+title: "Bedrijven op de kaart | Toffe Kerels"
+description: "Vind een Toffe Kerel bij jou in de buurt."
+---
+:::hero-section{video="/videos/hero-reel.webm"}
+# Vind een Toffe Kerel bij jou in de buurt
+Alle aangesloten bedrijven op één kaart.
+:::
+::business-map
+::
