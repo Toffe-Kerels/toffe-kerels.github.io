@@ -4,7 +4,14 @@
     "showcase": "Showcase",
     "contact": "Contact",
     "map": "Kaart",
-    "join": "Meedoen"
+    "join": "Meedoen",
+    "installApp": "App installeren",
+    "iosInstallHint": "Tik op het menu-icoon (···) linksonder in Safari, kies 'Deel', dan 'Meer opties' en tik op 'Zet op beginscherm'.",
+    "iosInstallSubtitle": "Voeg deze app toe aan je beginscherm voor snelle toegang.",
+    "iosStep1": "Tik op het ··· menu linksonder in Safari",
+    "iosStep2": "Tik op 'Deel', dan op 'Meer opties'",
+    "iosStep3": "Tik op 'Zet op beginscherm'",
+    "iosStep4": "Tik op 'Voeg toe' linksboven"
   },
   "map": {
     "searchPlaceholder": "Zoek op postcode of plaats…",

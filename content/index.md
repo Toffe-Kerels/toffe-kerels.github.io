@@ -1,5 +1,5 @@
 ---
-title: "Toffe Kerels | De tofste bedrijven in één overzicht"
+title: "De tofste bedrijven in één overzicht"
 description: "Wij laten zien wat lokale bedrijven in huis hebben. Van IT tot bouw, ontdek de Toffe Kerels."
 ---
 

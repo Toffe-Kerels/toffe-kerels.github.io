@@ -77,6 +77,92 @@
                 {{ loc.name }}
               </NuxtLink>
             </div>
+            <button
+              v-if="canInstall && !isInstalled"
+              class="mobile-install-btn"
+              @click="handleInstall"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 16V4M8 12l4 4 4-4"/>
+                <path d="M4 20h16"/>
+              </svg>
+              {{ t('nav.installApp') }}
+            </button>
+            <!-- iOS Install Modal (teleported to body) -->
+            <Teleport to="body">
+              <Transition name="ios-modal">
+                <div v-if="showIosHint" class="ios-modal-overlay" @click.self="showIosHint = false">
+                  <div class="ios-modal">
+                    <button class="ios-modal-close" @click="showIosHint = false">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                      </svg>
+                    </button>
+                    <div class="ios-modal-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 16V4M8 12l4 4 4-4"/>
+                        <path d="M4 20h16"/>
+                      </svg>
+                    </div>
+                    <h3 class="ios-modal-title">{{ t('nav.installApp') }}</h3>
+                    <p class="ios-modal-subtitle">{{ t('nav.iosInstallSubtitle') }}</p>
+                    <ol class="ios-modal-steps">
+                      <li class="ios-modal-step">
+                        <span class="step-num">1</span>
+                        <span class="step-text">{{ t('nav.iosStep1') }}</span>
+                        <span class="step-icon">
+                          <!-- Safari Share icon -->
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 12H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-4"/>
+                            <polyline points="12 2 12 15"/>
+                            <polyline points="9 5 12 2 15 5"/>
+                          </svg>
+                        </span>
+                      </li>
+                      <li class="ios-modal-step">
+                        <span class="step-num">2</span>
+                        <span class="step-text">{{ t('nav.iosStep2') }}</span>
+                        <span class="step-icon">
+                          <!-- Plus in square -->
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="3"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                          </svg>
+                        </span>
+                      </li>
+                      <li class="ios-modal-step">
+                        <span class="step-num">3</span>
+                        <span class="step-text">{{ t('nav.iosStep3') }}</span>
+                        <span class="step-icon">
+                          <!-- Plus in square -->
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="3"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                          </svg>
+                        </span>
+                      </li>
+                      <li class="ios-modal-step">
+                        <span class="step-num">4</span>
+                        <span class="step-text">{{ t('nav.iosStep4') }}</span>
+                        <span class="step-icon">
+                          <!-- Checkmark -->
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        </span>
+                      </li>
+                    </ol>
+                    <div class="ios-modal-arrow">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 22l-8-14h16z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </Transition>
+            </Teleport>
             <p class="mobile-copyright">&copy; {{ new Date().getFullYear() }} Toffe Kerels</p>
           </div>
         </div>
@@ -97,6 +183,27 @@ const isScrolled = ref(false)
 const isMenuOpen = ref(false)
 const isDarkTheme = ref(false)
 
+// PWA Install
+const installPrompt = ref<any>(null)
+const canInstall = ref(false)
+const isInstalled = ref(false)
+const isIos = ref(false)
+const showIosHint = ref(false)
+
+function handleInstall() {
+  if (isIos.value) {
+    showIosHint.value = true
+    return
+  }
+  if (installPrompt.value) {
+    installPrompt.value.prompt()
+    installPrompt.value.userChoice.then(() => {
+      installPrompt.value = null
+      canInstall.value = false
+    })
+  }
+}
+
 // Close menu when route changes
 watch(() => route.path, () => {
   isMenuOpen.value = false
@@ -110,6 +217,31 @@ const checkDarkTheme = () => {
 // Watch for DOM changes to detect dark mode toggles from other components
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+
+  // PWA install prompt
+  window.addEventListener('beforeinstallprompt', (e: Event) => {
+    e.preventDefault()
+    installPrompt.value = e
+    canInstall.value = true
+  })
+
+  window.addEventListener('appinstalled', () => {
+    canInstall.value = false
+    isInstalled.value = true
+    installPrompt.value = null
+  })
+
+  // Check if already installed (standalone mode)
+  if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true) {
+    isInstalled.value = true
+  }
+
+  // Detect iOS Safari (no beforeinstallprompt support)
+  const ua = navigator.userAgent
+  isIos.value = /iphone|ipad|ipod/i.test(ua) && !(window as any).MSStream
+  if (isIos.value && !isInstalled.value) {
+    canInstall.value = true
+  }
   
   // Use MutationObserver to detect class changes on <html>
   const observer = new MutationObserver((mutations) => {
@@ -425,12 +557,16 @@ html.is-dark .mobile-nav-link {
   margin-top: auto;
   border-top: 1px solid rgba(128, 128, 128, 0.2);
   padding-top: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .mobile-locales {
   display: flex;
   gap: 3rem;
   margin-bottom: 3rem;
+  justify-content: center;
 }
 
 .mobile-locale-link {
@@ -443,6 +579,221 @@ html.is-dark .mobile-nav-link {
 
 .mobile-locale-link.active {
   color: var(--gradient-1);
+}
+
+.mobile-install-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  padding: 1.4rem 2.4rem;
+  margin-bottom: 3rem;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--gradient-1);
+  border: 2px solid rgba(37, 99, 235, 0.3);
+  border-radius: 50px;
+  font-family: inherit;
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.mobile-install-btn svg {
+  width: 1.8rem;
+  height: 1.8rem;
+  flex-shrink: 0;
+}
+
+.mobile-install-btn:hover {
+  background: var(--gradient-1);
+  color: #fff;
+  border-color: var(--gradient-1);
+}
+
+/* iOS Install Modal */
+.ios-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 1.6rem 2rem;
+}
+
+.ios-modal {
+  position: relative;
+  background: var(--surface, #1a1a2e);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 2.4rem 2.4rem 1.6rem 1.6rem;
+  padding: 3.2rem 2.4rem 4rem;
+  width: 100%;
+  max-width: 42rem;
+  text-align: center;
+}
+
+.ios-modal-close {
+  position: absolute;
+  top: 1.6rem;
+  right: 1.6rem;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 50%;
+  width: 3.2rem;
+  height: 3.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background 0.2s;
+}
+
+.ios-modal-close:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.ios-modal-close svg {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.ios-modal-icon {
+  width: 6rem;
+  height: 6rem;
+  background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+  border-radius: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.6rem;
+}
+
+.ios-modal-icon svg {
+  width: 3rem;
+  height: 3rem;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.ios-modal-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.6rem;
+}
+
+.ios-modal-subtitle {
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin: 0 0 2.4rem;
+  line-height: 1.5;
+}
+
+.ios-modal-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.ios-modal-step {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 1.2rem;
+  padding: 1.2rem 1.6rem;
+  text-align: left;
+}
+
+.step-num {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-text {
+  flex: 1;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.step-icon {
+  width: 3.2rem;
+  height: 3.2rem;
+  background: rgba(255,255,255,0.06);
+  border-radius: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--gradient-1);
+}
+
+.step-icon svg {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.ios-modal-arrow {
+  color: var(--surface, #1a1a2e);
+  position: absolute;
+  bottom: -1.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0;
+  line-height: 0;
+}
+
+.ios-modal-arrow svg {
+  width: 3.6rem;
+  height: 1.8rem;
+}
+
+/* Modal transition */
+.ios-modal-enter-active,
+.ios-modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.ios-modal-enter-active .ios-modal,
+.ios-modal-leave-active .ios-modal {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ios-modal-enter-from,
+.ios-modal-leave-to {
+  opacity: 0;
+}
+
+.ios-modal-enter-from .ios-modal {
+  transform: translateY(100%);
+}
+
+.ios-modal-leave-to .ios-modal {
+  transform: translateY(100%);
 }
 
 .mobile-copyright {

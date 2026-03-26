@@ -274,7 +274,7 @@ html.is-dark .btn-primary {
 }
 
 .logo-brand.has-gradient span {
-  background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

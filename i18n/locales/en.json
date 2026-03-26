@@ -4,7 +4,14 @@
     "showcase": "Showcase",
     "contact": "Contact",
     "map": "Map",
-    "join": "Join"
+    "join": "Join",
+    "installApp": "Install App",
+    "iosInstallHint": "Tap the ··· menu at the bottom left of Safari, tap 'Share', then 'More Options', and tap 'Add to Home Screen'.",
+    "iosInstallSubtitle": "Add this app to your home screen for quick access.",
+    "iosStep1": "Tap the ··· menu at the bottom left of Safari",
+    "iosStep2": "Tap 'Share', then tap 'More Options'",
+    "iosStep3": "Tap 'Add to Home Screen'",
+    "iosStep4": "Tap 'Add' in the top left corner"
   },
   "map": {
     "searchPlaceholder": "Search by postal code or city…",

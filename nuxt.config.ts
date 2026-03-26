@@ -15,8 +15,14 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'nl'
       },
+      meta: [
+        { name: 'apple-mobile-web-app-title', content: 'Toffe Kerels' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+      ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/icon-192.png' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
       ]
     }
   },
@@ -66,20 +72,66 @@ export default defineNuxtConfig({
     registerType: 'autoUpdate',
     manifest: {
       name: 'Toffe Kerels',
-      short_name: 'ToffeKerels',
-      theme_color: '#4f46e5',
+      short_name: 'Toffe Kerels',
+      description: 'Showcase voor de tofste bedrijven in de regio.',
+      theme_color: '#0f172a',
+      background_color: '#0f172a',
+      display: 'standalone',
+      orientation: 'portrait',
+      start_url: '/',
       icons: [
         {
-          src: 'favicon.svg',
+          src: '/icon-192.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: '/icon-512.png',
           sizes: '512x512',
-          type: 'image/svg+xml'
+          type: 'image/png'
+        },
+        {
+          src: '/icon-512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable'
         }
       ]
     },
     workbox: {
-      navigateFallback: null,
-      globPatterns: ['**/*.{js,css,html,png,svg,ico,webp,woff,woff2}'],
-      maximumFileSizeToCacheInBytes: 4000000
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico,webp,woff,woff2,json}'],
+      maximumFileSizeToCacheInBytes: 5000000,
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/toffekerels\.nl\/.*/i,
+          handler: 'NetworkFirst',
+          options: {
+            cacheName: 'pages-cache',
+            expiration: { maxEntries: 50, maxAgeSeconds: 86400 }
+          }
+        },
+        {
+          urlPattern: /\.(png|jpg|jpeg|webp|svg|gif|ico)$/i,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'images-cache',
+            expiration: { maxEntries: 100, maxAgeSeconds: 2592000 }
+          }
+        },
+        {
+          urlPattern: /\.(woff|woff2|ttf|eot)$/i,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'fonts-cache',
+            expiration: { maxEntries: 20, maxAgeSeconds: 2592000 }
+          }
+        }
+      ]
+    },
+    client: {
+      installPrompt: true,
+      periodicSyncForUpdates: 3600
     }
   },
 
