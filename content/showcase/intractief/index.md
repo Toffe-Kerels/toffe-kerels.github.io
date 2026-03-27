@@ -11,9 +11,9 @@ contact:
   phone: "+31412480038"
   whatsapp: false
   website: "https://intractief.nl"
-  address: "Raadhuislaan 2A, 5341 GM Oss"
-  lat: 51.763
-  lng: 5.520
+  address: "Raadhuislaan 2A, 5341 GM Oss", 
+  lat: 51.764862574876524
+  lng: 5.525836224531878
 tags: ["Development", "Applicaties", "Maatwerk", "Koppelingen", "Websites"]
 ---
 

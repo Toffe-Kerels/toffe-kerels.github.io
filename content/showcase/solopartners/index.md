@@ -11,8 +11,8 @@ contact:
   whatsapp: false
   website: "https://www.solopartners.nl"
   address: "Ridderhof 67, 5341 HS Oss"
-  lat: 51.7656
-  lng: 5.5258
+  lat: 51.76471845533448
+  lng: 5.526105912751205
   socials:
     linkedin: "https://linkedin.com/company/solopartners"
     instagram: "https://instagram.com/solopartners"
