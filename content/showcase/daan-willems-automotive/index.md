@@ -15,7 +15,9 @@ contact:
   lng: 5.3031
   socials:
     instagram: "https://instagram.com/daanwillemsautomotive"
-    linkedin: "https://linkedin.com/company/daanwillemsautomotive"
+    linkedin: "https://nl.linkedin.com/company/willems-car-cleaning"
+    tiktok: "https://www.tiktok.com/@daanwillemsautomotive"
+    youtube: "https://www.youtube.com/@daanwillemsautomotive"
 tags: ["Automotive", "Occasions", "Detailing", "Exclusief"]
 ---
 
@@ -24,7 +26,7 @@ tags: ["Automotive", "Occasions", "Detailing", "Exclusief"]
 Exclusieve occasions. Persoonlijke service.
 ::
 
-:business-card{name="Daan Willems Automotive" tagline="Specialist in exclusieve occasions — zorgvuldig geselecteerd" phone="+31623182351" email="info@daanwillemsautomotive.nl" website="https://daanwillemsautomotive.nl" address="Goudenheuvel 13, 5234 GA 's-Hertogenbosch" :whatsapp="true" instagram="https://instagram.com/daanwillemsautomotive" linkedin="https://linkedin.com/company/daanwillemsautomotive"}
+:business-card
 
 ::intro-section
 ## Exclusiviteit op wielen

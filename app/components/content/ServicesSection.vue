@@ -9,7 +9,6 @@ defineProps<{
     <div class="services-bg-glow services-bg-glow--2"></div>
     <div class="container">
       <div v-if="title" class="services-header">
-        <p class="services-eyebrow">Wat wij doen</p>
         <h2 class="services-title">{{ title }}</h2>
         <div class="services-title-bar"></div>
       </div>

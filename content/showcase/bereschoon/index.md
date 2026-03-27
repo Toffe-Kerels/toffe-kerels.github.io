@@ -16,6 +16,8 @@ contact:
   socials:
     linkedin: "https://linkedin.com/company/bereschoon"
     instagram: "https://instagram.com/bereschoon"
+    tiktok: "https://www.tiktok.com/@bereschoon"
+    youtube: "https://www.youtube.com/@BERESCHOON"
 tags: ["Reiniging", "Oprit", "Gevel", "Terras", "Milieubewust"]
 ---
 
@@ -24,7 +26,7 @@ tags: ["Reiniging", "Oprit", "Gevel", "Terras", "Milieubewust"]
 Uitzonderlijke schoonmaak. Professioneel, efficiënt en milieubewust.
 ::
 
-:business-card{name="Bereschoon" tagline="Professionele buitenreiniging — gegarandeerd resultaat" phone="06-39494059" email="info@bereschoon.nl" website="https://bereschoon.nl" address="Helmond, Noord-Brabant" :whatsapp="true" kvk="91411629" instagram="https://instagram.com/bereschoon" linkedin="https://linkedin.com/company/bereschoon"}
+:business-card
 
 ::intro-section
 ## Bereschoon — Uitzonderlijke Schoonmaak

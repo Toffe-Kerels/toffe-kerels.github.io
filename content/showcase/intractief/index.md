@@ -4,19 +4,15 @@ description: "Slimme applicaties, handige koppelingen en doelgerichte websites. 
 image: "/images/showcase/intractief.jpg"
 video: "/videos/placeholders/video-1.webm"
 type: "company"
-members: ["Martijn van Schaik", "Michael van de Giessen", "Wout van de Pol", "Bram van Heumen", "Roy Tersluijsen", "Rick Pennings"]
+members: ["Martijn van Schaik", "Michael van de Giessen", "Edwin Jansen", "Wout van de Pol", "Bram van Heumen", "Roy Tersluijsen", "Rick Pennings", "Ramon Luteijn"]
 contact:
   email: "info@intractief.nl"
-  phone: "0412-480038"
+  phone: "+31412480038"
   whatsapp: false
   website: "https://intractief.nl"
   address: "Raadhuislaan 2A, 5341 GM Oss"
   lat: 51.763
   lng: 5.520
-  socials:
-    linkedin: "https://linkedin.com/company/intractief"
-    instagram: "https://instagram.com/intractief"
-    facebook: "https://www.facebook.com/intractief"
 tags: ["Development", "Applicaties", "Maatwerk", "Koppelingen", "Websites"]
 ---
 
@@ -25,7 +21,7 @@ tags: ["Development", "Applicaties", "Maatwerk", "Koppelingen", "Websites"]
 Jouw ambitie, onze online oplossing.
 ::
 
-:business-card{name="Intractief B.V." tagline="Slimme applicaties, handige koppelingen en doelgerichte websites" phone="0412-480038" email="info@intractief.nl" website="https://intractief.nl" address="Raadhuislaan 2A, 5341 GM Oss" instagram="https://instagram.com/intractief" linkedin="https://linkedin.com/company/intractief" facebook="https://www.facebook.com/intractief"}
+:business-card
 
 ::intro-section
 ## Jouw ambitie, onze online oplossing

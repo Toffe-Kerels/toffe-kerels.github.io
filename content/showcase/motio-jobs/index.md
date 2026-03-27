@@ -24,7 +24,7 @@ tags: ["Recruitment", "IT", "HR", "Detachering", "Uitzenden"]
 Werk dat raakt. Groei die blijft.
 ::
 
-:business-card{name="Motio Jobs B.V." tagline="Talent voor elke organisatie — van uitvoerend tot gespecialiseerd" phone="06-45342534" email="info@motiojobs.nl" website="https://motiojobs.nl" address="Molenweg 143c, 6543 VA Nijmegen" :whatsapp="true" instagram="https://instagram.com/motiojobs" linkedin="https://www.linkedin.com/company/motio-jobs"}
+:business-card
 
 ::intro-section
 ## Werk dat raakt. Groei die blijft.

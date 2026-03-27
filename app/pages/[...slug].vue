@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
+const pageData = useState('currentPage', () => null)
 const { locale, defaultLocale } = useI18n()
 // Fetch content, falling back to the default-locale path if no translation exists
 const { data: page } = await useAsyncData(route.path, async () => {
@@ -12,6 +13,7 @@ const { data: page } = await useAsyncData(route.path, async () => {
   return null
 })
 
+if (page.value) pageData.value = page.value
 if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: false })
 }

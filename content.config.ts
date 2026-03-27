@@ -26,11 +26,14 @@ export default defineContentConfig({
           address: z.string().optional(),
           lat: z.number().optional(),
           lng: z.number().optional(),
+          kvk: z.string().optional(),
           socials: z.object({
             instagram: z.string().optional(),
             linkedin: z.string().optional(),
             facebook: z.string().optional(),
-            twitter: z.string().optional()
+            x: z.string().optional(),
+            tiktok: z.string().optional(),
+            youtube: z.string().optional()
           }).optional()
         }).optional()
       })
