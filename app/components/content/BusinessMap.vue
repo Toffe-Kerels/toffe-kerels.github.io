@@ -364,8 +364,68 @@ function onPointerDown(e: PointerEvent) {
   ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
 }
 
+// ── Pinch-to-zoom ────────────────────────────────────────────────────────────
+let lastPinchDist = 0
+let pinching = false
+
+function pinchDist(e: TouchEvent) {
+  const dx = e.touches[0].clientX - e.touches[1].clientX
+  const dy = e.touches[0].clientY - e.touches[1].clientY
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+function onTouchStart(e: TouchEvent) {
+  if (e.touches.length === 2) {
+    pinching = true
+    dragging = false
+    lastPinchDist = pinchDist(e)
+  }
+}
+
 function onTouchMove(e: TouchEvent) {
+  if (e.touches.length === 2 && pinching) {
+    e.preventDefault()
+    const dist = pinchDist(e)
+    const ratio = dist / lastPinchDist
+    if (ratio > 1.15) {
+      lastPinchDist = dist
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2
+      const rect = mapEl.value!.getBoundingClientRect()
+      zoomAroundPoint(midX - rect.left, midY - rect.top, 1)
+    } else if (ratio < 0.87) {
+      lastPinchDist = dist
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2
+      const rect = mapEl.value!.getBoundingClientRect()
+      zoomAroundPoint(midX - rect.left, midY - rect.top, -1)
+    }
+    return
+  }
   if (dragging) e.preventDefault()
+}
+
+function onTouchEnd(e: TouchEvent) {
+  if (e.touches.length < 2) pinching = false
+}
+
+function zoomAroundPoint(mouseX: number, mouseY: number, step: number) {
+  const pixelX = mouseX - offsetX.value + originTileX.value * TILE_SIZE
+  const pixelY = mouseY - offsetY.value + originTileY.value * TILE_SIZE
+  const oldZoom = zoom.value
+  const newZoom = Math.max(3, Math.min(18, zoom.value + step))
+  if (newZoom === oldZoom) return
+  const scale = Math.pow(2, newZoom - oldZoom)
+  const newPixelX = pixelX * scale
+  const newPixelY = pixelY * scale
+  const newOriginPixelX = newPixelX - mouseX
+  const newOriginPixelY = newPixelY - mouseY
+  zoom.value = newZoom
+  originTileX.value = Math.floor(newOriginPixelX / TILE_SIZE)
+  originTileY.value = Math.floor(newOriginPixelY / TILE_SIZE)
+  offsetX.value = -(newOriginPixelX % TILE_SIZE)
+  offsetY.value = -(newOriginPixelY % TILE_SIZE)
+  activePin.value = null
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -398,27 +458,23 @@ function onPointerUp() {
 function onWheel(e: WheelEvent) {
   if (!mapFocused.value) return
   e.preventDefault()
-
-  const step = e.deltaY < 0 ? 1 : -1
-
   const rect = mapEl.value!.getBoundingClientRect()
-  const mouseX = e.clientX - rect.left
-  const mouseY = e.clientY - rect.top
+  zoomAroundPoint(e.clientX - rect.left, e.clientY - rect.top, e.deltaY < 0 ? 1 : -1)
+}
 
-  const pixelX = mouseX - offsetX.value + originTileX.value * TILE_SIZE
-  const pixelY = mouseY - offsetY.value + originTileY.value * TILE_SIZE
-
+function zoomAtCenter(step: number) {
+  const cx = mapWidth.value / 2
+  const cy = mapHeight.value / 2
+  const pixelX = cx - offsetX.value + originTileX.value * TILE_SIZE
+  const pixelY = cy - offsetY.value + originTileY.value * TILE_SIZE
   const oldZoom = zoom.value
   const newZoom = Math.max(3, Math.min(18, zoom.value + step))
   if (newZoom === oldZoom) return
-
   const scale = Math.pow(2, newZoom - oldZoom)
   const newPixelX = pixelX * scale
   const newPixelY = pixelY * scale
-
-  const newOriginPixelX = newPixelX - mouseX
-  const newOriginPixelY = newPixelY - mouseY
-
+  const newOriginPixelX = newPixelX - cx
+  const newOriginPixelY = newPixelY - cy
   zoom.value = newZoom
   originTileX.value = Math.floor(newOriginPixelX / TILE_SIZE)
   originTileY.value = Math.floor(newOriginPixelY / TILE_SIZE)
@@ -426,17 +482,8 @@ function onWheel(e: WheelEvent) {
   offsetY.value = -(newOriginPixelY % TILE_SIZE)
   activePin.value = null
 }
-
-function zoomIn() {
-  const lat = tileToLat(originTileY.value + tilesY.value / 2, zoom.value)
-  const lng = tileToLng(originTileX.value + tilesX.value / 2, zoom.value)
-  centerOn(lat, lng, Math.min(18, zoom.value + 1))
-}
-function zoomOut() {
-  const lat = tileToLat(originTileY.value + tilesY.value / 2, zoom.value)
-  const lng = tileToLng(originTileX.value + tilesX.value / 2, zoom.value)
-  centerOn(lat, lng, Math.max(3, zoom.value - 1))
-}
+function zoomIn() { zoomAtCenter(1) }
+function zoomOut() { zoomAtCenter(-1) }
 
 // ── Pin click ────────────────────────────────────────────────────────────────
 function updatePopupPosition(marker: any) {
@@ -485,7 +532,9 @@ onMounted(() => {
   nextTick(() => {
     initMap()
     if (mapEl.value) {
+      mapEl.value.addEventListener('touchstart', onTouchStart, { passive: true })
       mapEl.value.addEventListener('touchmove', onTouchMove, { passive: false })
+      mapEl.value.addEventListener('touchend', onTouchEnd, { passive: true })
     }
     if (window.innerWidth <= 768 && wrapperEl.value && searchBarEl.value) {
       mobileMapHeight.value = window.innerHeight - searchBarEl.value.offsetHeight - 12 - 96
@@ -515,7 +564,9 @@ onMounted(() => {
     window.removeEventListener('resize', onResize)
     document.removeEventListener('click', onDocClick)
     if (mapEl.value) {
+      mapEl.value.removeEventListener('touchstart', onTouchStart)
       mapEl.value.removeEventListener('touchmove', onTouchMove)
+      mapEl.value.removeEventListener('touchend', onTouchEnd)
     }
   })
 })
@@ -905,6 +956,7 @@ onMounted(() => {
   background: #1a2332;
   cursor: grab;
   user-select: none;
+  touch-action: manipulation;
   border: 1px solid var(--glass-border);
   box-shadow: 0 8px 48px rgba(0, 0, 0, 0.5);
 }
