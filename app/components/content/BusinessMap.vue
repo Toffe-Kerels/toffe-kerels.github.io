@@ -49,6 +49,9 @@ const popupEl = ref<HTMLElement | null>(null)
 const mapWidth = ref(800)
 const mapHeight = ref(520)
 const mapFocused = ref(false)
+const wrapperEl = ref<HTMLElement | null>(null)
+const searchBarEl = ref<HTMLElement | null>(null)
+const mobileMapHeight = ref<number | null>(null)
 
 // ── Postal code search ───────────────────────────────────────────────────────
 const postalInput = ref('')
@@ -328,8 +331,28 @@ function onMapClick() {
   activePin.value = null
 }
 
-function onPointerDown(e: PointerEvent) {
+function engageMap() {
+  if (mapFocused.value) return
   mapFocused.value = true
+  if (window.innerWidth <= 768 && wrapperEl.value) {
+    const searchBarHeight = searchBarEl.value ? searchBarEl.value.offsetHeight + 12 : 60
+    mobileMapHeight.value = window.innerHeight - searchBarHeight - 96
+    nextTick(() => {
+      const headerEl = document.querySelector('.app-header') as HTMLElement | null
+      const headerHeight = headerEl ? headerEl.offsetHeight : 0
+      const top = wrapperEl.value!.getBoundingClientRect().top + window.scrollY - headerHeight
+      window.scrollTo({ top, behavior: 'smooth' })
+    })
+  }
+}
+
+function disengageMap() {
+  mapFocused.value = false
+  activePin.value = null
+}
+
+function onPointerDown(e: PointerEvent) {
+  if (!mapFocused.value) return
   dragging = true
   didDrag = false
   dragStartX = e.clientX
@@ -339,6 +362,10 @@ function onPointerDown(e: PointerEvent) {
   dragOriginTileX = originTileX.value
   dragOriginTileY = originTileY.value
   ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+}
+
+function onTouchMove(e: TouchEvent) {
+  if (dragging) e.preventDefault()
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -455,11 +482,24 @@ function initials(title: string) {
 
 // ── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(() => {
-  nextTick(() => initMap())
+  nextTick(() => {
+    initMap()
+    if (mapEl.value) {
+      mapEl.value.addEventListener('touchmove', onTouchMove, { passive: false })
+    }
+    if (window.innerWidth <= 768 && wrapperEl.value && searchBarEl.value) {
+      mobileMapHeight.value = window.innerHeight - searchBarEl.value.offsetHeight - 12 - 96
+    }
+  })
   const onResize = () => {
     if (mapEl.value) {
       mapWidth.value = mapEl.value.clientWidth
       mapHeight.value = mapEl.value.clientHeight
+    }
+    if (window.innerWidth <= 768 && wrapperEl.value && searchBarEl.value) {
+      mobileMapHeight.value = window.innerHeight - searchBarEl.value.offsetHeight - 12 - 96
+    } else {
+      mobileMapHeight.value = null
     }
   }
   const onDocClick = (e: MouseEvent) => {
@@ -474,15 +514,18 @@ onMounted(() => {
   onUnmounted(() => {
     window.removeEventListener('resize', onResize)
     document.removeEventListener('click', onDocClick)
+    if (mapEl.value) {
+      mapEl.value.removeEventListener('touchmove', onTouchMove)
+    }
   })
 })
 </script>
 
 <template>
   <ClientOnly>
-    <div class="biz-map-wrapper">
+    <div ref="wrapperEl" class="biz-map-wrapper">
       <!-- Postal code search -->
-      <div class="map-search-bar">
+      <div ref="searchBarEl" class="map-search-bar">
         <div class="map-search-input-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input
@@ -504,6 +547,7 @@ onMounted(() => {
         ref="mapEl"
         class="biz-map"
         :class="{ focused: mapFocused }"
+        :style="mobileMapHeight ? { height: mobileMapHeight + 'px' } : {}"
         @pointerdown="onPointerDown"
         @pointermove="onPointerMove"
         @pointerup="onPointerUp"
@@ -512,7 +556,7 @@ onMounted(() => {
       >
         <!-- Scroll-to-interact overlay -->
         <Transition name="overlay">
-          <div v-if="!mapFocused" class="map-overlay" @click.stop="mapFocused = true">
+          <div v-if="!mapFocused" class="map-overlay" @click.stop="engageMap">
             <div class="map-overlay-hint">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
               {{ $t('map.clickToInteract') }}
@@ -655,6 +699,14 @@ onMounted(() => {
           </Transition>
         </Teleport>
 
+        <!-- Disengage button (mobile only) -->
+        <Transition name="overlay">
+          <button v-if="mapFocused" class="map-disengage-btn" @click.stop="disengageMap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            {{ $t('map.closeMap') }}
+          </button>
+        </Transition>
+
         <!-- Zoom controls -->
         <div class="map-controls">
           <button @click="zoomIn" :title="t('map.zoomIn')" :aria-label="t('map.zoomIn')">
@@ -721,6 +773,12 @@ onMounted(() => {
   font-size: 1.4rem;
   padding: 1rem 0.8rem;
   font-family: inherit;
+}
+
+@media (max-width: 768px) {
+  .map-search-input {
+    font-size: 16px;
+  }
 }
 
 .map-search-input::placeholder {
@@ -805,6 +863,35 @@ onMounted(() => {
 .overlay-enter-from,
 .overlay-leave-to {
   opacity: 0;
+}
+
+/* ── Disengage button ── */
+.map-disengage-btn {
+  position: absolute;
+  bottom: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(13, 17, 23, 0.9);
+  border: 1px solid var(--glass-border);
+  border-radius: 2rem;
+  padding: 0.7rem 1.6rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  transition: background 0.15s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.map-disengage-btn:hover {
+  background: rgba(30, 38, 50, 0.95);
+  transform: translateX(-50%) scale(1.04);
 }
 
 /* ── Map container ── */

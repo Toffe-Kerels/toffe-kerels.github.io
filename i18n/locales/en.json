@@ -23,7 +23,8 @@
     "noBusinesses": "No businesses with coordinates found. Add lat and lng to the contact block in a company's showcase file.",
     "geocoderError": "Could not reach geocoder.",
     "viewProfile": "View profile",
-    "clickToInteract": "Click to interact with the map"
+    "clickToInteract": "Click to interact with the map",
+    "closeMap": "Close map"
   },
   "join": {
     "lead": "Toffe Kerels is not an open platform. It's a tight circle of professionals who know, trust, and vouch for each other. Want to be part of it?",

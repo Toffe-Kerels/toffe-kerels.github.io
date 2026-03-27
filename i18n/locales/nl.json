@@ -23,7 +23,8 @@
     "noBusinesses": "Geen bedrijven met coördinaten gevonden. Voeg lat en lng toe aan het contact-blok in het showcase-bestand van een bedrijf.",
     "geocoderError": "Kon de geocoder niet bereiken.",
     "viewProfile": "Bekijk profiel",
-    "clickToInteract": "Klik om de kaart te gebruiken"
+    "clickToInteract": "Klik om de kaart te gebruiken",
+    "closeMap": "Kaart sluiten"
   },
   "join": {
     "lead": "Toffe Kerels is geen open platform. Het is een hechte kring van vakmensen die elkaar kennen, vertrouwen en voor elkaar instaan. Wil jij erbij horen?",
