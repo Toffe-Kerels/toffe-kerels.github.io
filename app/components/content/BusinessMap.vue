@@ -784,7 +784,7 @@ onMounted(() => {
 <style scoped>
 .biz-map-wrapper {
   width: 100%;
-  margin: 2rem 0 8rem;
+  padding-top: var(--section-padding);
 }
 
 /* ── Postal search bar ── */
@@ -827,6 +827,10 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .biz-map-wrapper {
+    padding-top: var(--section-padding-mobile);
+  }
+
   .map-search-input {
     font-size: 16px;
   }

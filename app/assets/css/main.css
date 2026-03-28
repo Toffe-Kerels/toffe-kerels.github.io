@@ -23,8 +23,8 @@
 
   /* Spacing */
   --container-max-width: 1400px;
-  --section-padding: 16rem;
-  --section-padding-mobile: 10rem;
+  --section-padding: 4rem;
+  --section-padding-mobile: 4rem;
 
   /* Transitions */
   --transition-smooth: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -140,7 +140,7 @@ a {
 }
 
 section {
-  padding: var(--section-padding) 0;
+  padding: var(--section-padding) 0 0;
   position: relative;
 }
 
@@ -150,11 +150,17 @@ section {
   }
   
   section {
-    padding: var(--section-padding-mobile) 0;
+    padding: var(--section-padding-mobile) 0 0;
   }
   
   .container {
     padding: 0 2.4rem;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
   }
 }
 
@@ -281,4 +287,19 @@ html.is-dark .btn-primary {
 
 .logo-brand.has-orange span {
   color: var(--accent);
+}
+
+/* WebOnly wrapper — layout-transparent by default */
+.web-only-wrapper {
+  display: contents;
+}
+
+/* Hide immediately when app-mode class is set by the blocking head script */
+html.app-mode .web-only-wrapper {
+  display: none !important;
+}
+
+/* In app mode there is no hero, so compensate for the fixed header height */
+html.app-mode .page-container {
+  padding-top: 8rem;
 }

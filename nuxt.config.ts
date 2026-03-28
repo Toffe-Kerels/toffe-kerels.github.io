@@ -5,6 +5,12 @@ import path from 'node:path'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2026-03-24',
+
+  runtimeConfig: {
+    public: {
+      forceAppMode: false
+    }
+  },
   compatibilityVersion: 4,
   ssr: true,
 
@@ -30,6 +36,22 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/icon-192.png' },
         { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+      ],
+      script: [
+        {
+          // Runs synchronously before first paint — same technique as theme-flash prevention.
+          // Adds 'app-mode' class to <html> so CSS can hide .web-only-wrapper before any frame is drawn.
+          innerHTML: `(function(){
+  try {
+    var s = window.matchMedia('(display-mode:standalone)').matches;
+    var f = window.matchMedia('(display-mode:fullscreen)').matches;
+    var c = !!(window.Capacitor && window.Capacitor.isNative);
+    var stored = localStorage.getItem('appMode') === 'true';
+    if (s || f || c || stored) { document.documentElement.classList.add('app-mode'); }
+  } catch(e) {}
+})();`,
+          type: 'text/javascript'
+        }
       ]
     }
   },

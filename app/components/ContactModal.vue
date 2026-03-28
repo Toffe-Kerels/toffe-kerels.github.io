@@ -310,5 +310,10 @@ function onOverlayClick(e: MouseEvent) {
   .form-row {
     grid-template-columns: 1fr;
   }
+
+  .form-field input,
+  .form-field textarea {
+    font-size: 16px;
+  }
 }
 </style>

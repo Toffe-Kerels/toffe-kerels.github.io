@@ -205,7 +205,7 @@ function handleInstall() {
 }
 
 // Close menu when route changes
-watch(() => route.path, () => {
+watch(() => route.path, (path) => {
   isMenuOpen.value = false
 })
 
@@ -239,7 +239,7 @@ onMounted(() => {
   // Detect iOS Safari (no beforeinstallprompt support)
   const ua = navigator.userAgent
   isIos.value = /iphone|ipad|ipod/i.test(ua) && !(window as any).MSStream
-  if (isIos.value && !isInstalled.value) {
+  if (isIos.value && !isInstalled.value && route.path === '/') {
     canInstall.value = true
   }
   

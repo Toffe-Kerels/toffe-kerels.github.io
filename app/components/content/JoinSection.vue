@@ -248,9 +248,7 @@ function onQuizApply(plan: 'company' | 'individual' | 'supporter') {
 </template>
 
 <style scoped>
-.join-section {
-  padding: var(--section-padding) 0;
-}
+
 
 /* ── Intro ── */
 .join-intro {

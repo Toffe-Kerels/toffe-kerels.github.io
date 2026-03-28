@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+const props = defineProps<{ home?: boolean }>()
 
 const { locale } = useI18n()
 
@@ -21,6 +23,18 @@ const { data: allItems } = await useAsyncData(`showcase-items`, () => {
 const search = ref('')
 const typeFilter = ref('all')
 const activeTag = ref('')
+const tagSearch = ref('')
+const tagDropdownOpen = ref(false)
+const tagSelectorEl = ref<HTMLElement | null>(null)
+
+function onClickOutside(e: MouseEvent) {
+  if (tagSelectorEl.value && !tagSelectorEl.value.contains(e.target as Node)) {
+    tagDropdownOpen.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('mousedown', onClickOutside))
+onUnmounted(() => document.removeEventListener('mousedown', onClickOutside))
 
 const allTags = computed(() => {
   if (!allItems.value) return []
@@ -29,8 +43,30 @@ const allTags = computed(() => {
   return Array.from(tags).sort()
 })
 
+// 12 random items for home page, priority items always included
+const homeItems = computed(() => {
+  if (!allItems.value) return []
+  const HOME_COUNT = 12
+  const priority = allItems.value.filter(item => item.priority)
+  const rest = allItems.value.filter(item => !item.priority)
+  // Shuffle rest deterministically per session using Fisher-Yates with Math.random
+  const shuffled = [...rest].sort(() => Math.random() - 0.5)
+  const fill = shuffled.slice(0, Math.max(0, HOME_COUNT - priority.length))
+  // Shuffle the combined list so priority items aren't always first
+  return [...priority, ...fill].sort(() => Math.random() - 0.5)
+})
+
+const hasActiveFilters = computed(() => search.value || typeFilter.value !== 'all' || activeTag.value)
+
 const filteredItems = computed(() => {
   if (!allItems.value) return []
+
+  // Home page: show random 12 (with priority) when no filters active
+  if (props.home && !hasActiveFilters.value) return homeItems.value
+
+  // Showcase page: show nothing until filters active
+  if (!props.home && !hasActiveFilters.value) return []
+
   let items = allItems.value
 
   if (typeFilter.value !== 'all') {
@@ -57,32 +93,31 @@ const filteredItems = computed(() => {
   return items
 })
 
+const filteredTags = computed(() => {
+  const q = tagSearch.value.trim().toLowerCase()
+  if (!q) return allTags.value
+  return allTags.value.filter(tag => tag.toLowerCase().includes(q))
+})
+
 function toggleTag(tag: string) {
   activeTag.value = activeTag.value === tag ? '' : tag
+  tagDropdownOpen.value = false
+  tagSearch.value = ''
 }
 
 function clearFilters() {
   search.value = ''
   typeFilter.value = 'all'
   activeTag.value = ''
+  tagSearch.value = ''
+  tagDropdownOpen.value = false
 }
 
-const hasActiveFilters = computed(() => search.value || typeFilter.value !== 'all' || activeTag.value)
-
-const showAllTags = ref(false)
-const TAG_LIMIT = 12
-const visibleTags = computed(() => showAllTags.value ? allTags.value : allTags.value.slice(0, TAG_LIMIT))
 </script>
 
 <template>
   <section class="showcase-section">
     <div class="container">
-
-      <!-- Header -->
-      <div class="section-header text-center reveal-on-scroll active">
-        <h2>{{ locale === 'en' ? 'Our' : 'Onze' }} <span class="accent-text">{{ locale === 'en' ? 'Makers & Thinkers' : 'Makers & Denkers' }}</span></h2>
-        <p class="section-sub">{{ locale === 'en' ? 'A unique mix of driven companies and passionate individuals.' : 'Een uniek mix van gedreven bedrijven en gepassioneerde personen.' }}</p>
-      </div>
 
       <!-- Search + Filter Bar -->
       <div class="search-bar-wrapper">
@@ -113,23 +148,55 @@ const visibleTags = computed(() => showAllTags.value ? allTags.value : allTags.v
         </div>
       </div>
 
-      <!-- Tag Cloud -->
-      <div class="tag-cloud">
+      <!-- Tag selector -->
+      <div class="tag-selector" ref="tagSelectorEl" @keydown.esc="tagDropdownOpen = false">
         <button
-          v-for="tag in visibleTags"
-          :key="tag"
-          class="tag-pill"
-          :class="{ active: activeTag === tag }"
-          @click="toggleTag(tag)"
+          class="tag-selector-trigger"
+          :class="{ active: activeTag }"
+          @click="tagDropdownOpen = !tagDropdownOpen"
         >
-          #{{ tag }}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          <span>{{ activeTag ? '#' + activeTag : (locale === 'en' ? 'Category' : 'Categorie') }}</span>
+          <svg class="chevron" :class="{ open: tagDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
         </button>
-        <button v-if="allTags.length > TAG_LIMIT" class="tag-pill show-more-pill" @click="showAllTags = !showAllTags">
-          {{ showAllTags ? (locale === 'en' ? '↑ Less' : '↑ Minder') : `+${allTags.length - TAG_LIMIT}` }}
+        <button v-if="activeTag" class="tag-clear-btn" @click="activeTag = ''; tagSearch = ''" :aria-label="locale === 'en' ? 'Clear category' : 'Wis categorie'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
-        <button v-if="hasActiveFilters" class="tag-pill clear-pill" @click="clearFilters">
-          {{ locale === 'en' ? '✕ Clear' : '✕ Wis' }}
-        </button>
+
+        <div v-if="tagDropdownOpen" class="tag-dropdown">
+          <div class="tag-dropdown-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input
+              v-model="tagSearch"
+              type="text"
+              :placeholder="locale === 'en' ? 'Search category…' : 'Zoek categorie…'"
+              autofocus
+            />
+          </div>
+          <div class="tag-dropdown-list">
+            <button
+              v-for="tag in filteredTags"
+              :key="tag"
+              class="tag-dropdown-item"
+              :class="{ active: activeTag === tag }"
+              @click="toggleTag(tag)"
+            >
+              <span class="tag-hash">#</span>{{ tag }}
+              <svg v-if="activeTag === tag" class="tag-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>
+            <div v-if="filteredTags.length === 0" class="tag-dropdown-empty">
+              {{ locale === 'en' ? 'No categories found' : 'Geen categorieën gevonden' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompt to start searching (showcase page only) -->
+      <div v-if="!home && !hasActiveFilters" class="search-prompt">
+        <div class="search-prompt-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <p>{{ locale === 'en' ? 'Type a search query or pick a category to find members.' : 'Typ een zoekopdracht of kies een categorie om leden te vinden.' }}</p>
       </div>
 
       <!-- Results count -->
@@ -203,8 +270,10 @@ const visibleTags = computed(() => showAllTags.value ? allTags.value : allTags.v
       </TransitionGroup>
 
       <!-- Empty state -->
-      <div v-if="!filteredItems.length" class="empty-state">
-        <div class="empty-icon">🔍</div>
+      <div v-if="!filteredItems.length && hasActiveFilters" class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
         <p>{{ locale === 'en' ? 'No results found.' : 'Geen resultaten gevonden.' }}</p>
         <button class="empty-reset" @click="clearFilters">{{ locale === 'en' ? 'Clear filters' : 'Filters wissen' }}</button>
       </div>
@@ -354,61 +423,232 @@ const visibleTags = computed(() => showAllTags.value ? allTags.value : allTags.v
   opacity: 0.8;
 }
 
-/* ── Tag cloud ── */
-.tag-cloud {
+/* ── Tag selector ── */
+.tag-selector {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.8rem;
   margin-bottom: 2rem;
-  padding: 0.4rem 0.2rem;
 }
 
-.tag-pill {
-  padding: 0.6rem 1.6rem;
+@media (max-width: 640px) {
+  .tag-selector {
+    width: 100%;
+  }
+
+  .tag-selector-trigger {
+    flex: 1;
+    justify-content: space-between;
+  }
+}
+
+.tag-selector-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.8rem;
   border-radius: 50px;
-  border: 1.5px solid var(--glass-border);
-  background: transparent;
+  border: 2px solid var(--glass-border);
+  background: var(--glass-bg);
   color: var(--text-muted);
   font-family: inherit;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
 }
 
-.tag-pill:hover {
+.tag-selector-trigger svg:first-child {
+  width: 1.6rem;
+  height: 1.6rem;
+  flex-shrink: 0;
+}
+
+.tag-selector-trigger.active {
+  border-color: var(--gradient-2);
+  color: var(--gradient-2);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.tag-selector-trigger:hover {
   border-color: var(--gradient-2);
   color: var(--gradient-2);
 }
 
-.tag-pill.active {
-  background: var(--gradient-2);
-  border-color: var(--gradient-2);
-  color: #fff;
+.chevron {
+  width: 1.4rem;
+  height: 1.4rem;
+  flex-shrink: 0;
+  transition: transform 0.2s;
 }
 
-.show-more-pill {
-  border-color: var(--glass-border);
-  color: var(--text-muted);
-  font-weight: 800;
+.chevron.open {
+  transform: rotate(180deg);
 }
 
-.show-more-pill:hover {
-  border-color: var(--gradient-1);
-  color: var(--gradient-1);
-}
-
-.clear-pill {
-  border-color: rgba(239, 68, 68, 0.4);
+.tag-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  border: 1.5px solid rgba(239, 68, 68, 0.4);
+  background: transparent;
   color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
 }
 
-.clear-pill:hover {
+.tag-clear-btn:hover {
   background: rgba(239, 68, 68, 0.1);
   border-color: #ef4444;
-  color: #ef4444;
+}
+
+.tag-clear-btn svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.tag-dropdown {
+  position: absolute;
+  top: calc(100% + 0.8rem);
+  left: 0;
+  z-index: 100;
+  width: 32rem;
+  max-width: calc(100vw - 3.2rem);
+  background: var(--bg, #0f172a);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 1.6rem;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+}
+
+.tag-dropdown-search {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem 1.6rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.tag-dropdown-search svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.tag-dropdown-search input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tag-dropdown-search input::placeholder {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.tag-dropdown-list {
+  max-height: 28rem;
+  overflow-y: auto;
+  padding: 0.8rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border) transparent;
+}
+
+.tag-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  border-radius: 0.8rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tag-dropdown-item:hover {
+  background: var(--glass-bg);
+  color: var(--text);
+}
+
+.tag-dropdown-item.active {
+  color: var(--gradient-2);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.tag-hash {
+  opacity: 0.5;
+  font-weight: 500;
+}
+
+.tag-check {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--gradient-2);
+}
+
+.tag-dropdown-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+}
+
+/* ── Search prompt ── */
+.search-prompt {
+  text-align: center;
+  padding: 6rem 2rem;
+  color: var(--text-muted);
+}
+
+.search-prompt-icon {
+  margin: 0 auto 2rem;
+  width: 5.6rem;
+  height: 5.6rem;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1.5px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-prompt-icon svg {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.search-prompt p {
+  font-size: 1.6rem;
+  font-weight: 500;
+  max-width: 40rem;
+  margin: 0 auto;
+  line-height: 1.6;
 }
 
 /* ── Results meta ── */
@@ -664,6 +904,15 @@ const visibleTags = computed(() => showAllTags.value ? allTags.value : allTags.v
 .empty-icon {
   font-size: 5rem;
   margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-icon svg {
+  width: 5rem;
+  height: 5rem;
+  color: var(--text-muted);
 }
 
 .empty-state p {
@@ -758,6 +1007,11 @@ const visibleTags = computed(() => showAllTags.value ? allTags.value : allTags.v
 
   .card-body {
     padding: 2.4rem;
+  }
+
+  .search-input,
+  .tag-dropdown-search input {
+    font-size: 16px;
   }
 }
 </style>

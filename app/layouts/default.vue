@@ -1,10 +1,14 @@
+<script setup lang="ts">
+const { isAppMode } = useAppMode()
+</script>
+
 <template>
   <div class="layout-default">
     <AppHeader />
     <main class="main-content">
       <slot />
     </main>
-    <AppFooter />
+    <AppFooter v-if="!isAppMode" />
   </div>
 </template>
 

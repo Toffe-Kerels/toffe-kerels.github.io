@@ -80,7 +80,7 @@ onMounted(() => {
   align-items: center;
   overflow: hidden;
   background-color: var(--primary);
-  padding-top: 9rem;
+  padding-top: 12rem;
 }
 
 .hero-section--compact {

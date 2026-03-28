@@ -16,7 +16,10 @@ defineProps<{
           <div class="blob blob-3"></div>
         </div>
         <div class="experience-card glass floating">
-          <div class="card-icon">{{ statIcon ?? '✨' }}</div>
+          <div class="card-icon">
+            <span v-if="statIcon">{{ statIcon }}</span>
+            <svg v-else viewBox="0 0 24 24" fill="currentColor" stroke="none" width="32" height="32"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
           <div class="card-content">
             <span class="card-number">{{ stat }}</span>
             <span class="card-label">{{ statLabel ?? 'Passie' }}</span>
@@ -137,6 +140,10 @@ defineProps<{
   justify-content: center;
   border-radius: 2rem;
   box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.card-icon svg {
+  color: var(--accent, #f59e0b);
 }
 
 .card-content {
