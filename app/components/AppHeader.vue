@@ -7,7 +7,7 @@
         :class="props.logoClass ?? 'has-gradient'"
       >
         <slot name="logo">
-          TOFFE<span>KERELS</span>
+          {{ brand.logoText }}<span>{{ brand.logoSpan }}</span>
         </slot>
       </NuxtLink>
       
@@ -288,15 +288,9 @@ const props = withDefaults(defineProps<{
 const showThemeSlider = computed(() => props.showThemeSlider)
 const showLocaleSwitcher = computed(() => props.showLocaleSwitcher)
 
-const { target } = useBuildTarget()
-const config = useRuntimeConfig()
-const brand = computed(() => {
-  const brands = config.public.brands as Record<string, any>
-  return brands[target] ?? brands['default']
-})
-const contentCollection = target === 'default' ? 'content' : target+'_content'
-const { data: navPages } = await useAsyncData('nav-links-'+target, () =>
-  queryCollection(contentCollection as any)
+const { brand } = useBuildTarget()
+const { data: navPages } = await useAsyncData('nav-links-'+brand.id, () =>
+  queryCollection('brand_content' as any)
     .where('nav', 'IS NOT NULL', '')
     .order('order', 'ASC')
     .select('path', 'nav', 'order')
@@ -305,7 +299,7 @@ const { data: navPages } = await useAsyncData('nav-links-'+target, () =>
 const navLinks = computed(() =>
   (navPages.value ?? []).map(p => ({
     name: p.nav as string,
-    path: p.path.replace('/'+target, '') || '/'
+    path: p.path.replace('/'+brand.contentDir, '') || '/'
   }))
 )
 </script>
