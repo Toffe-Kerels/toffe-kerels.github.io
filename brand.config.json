@@ -5,6 +5,7 @@
   "logoText": "TOFFE",
   "logoSpan": "KERELS",
   "logoClass": "is-light has-orange",
+  "logoClassHeader": "is-light has-gradient",
   "descriptionKey": "footer.description.toffekerels",
   "email": "info@toffekerels.nl",
   "phone": "0412-480038",

@@ -5,6 +5,8 @@
   "logoText": "MIJN",
   "logoSpan": "PLATFORM",
   "logoClass": "is-light has-gradient",
+  "logoClassHeader": null,
+  "logoDot": null,
   "descriptionKey": "footer.description.default",
   "email": "info@example.com",
   "phone": "",
