@@ -16,5 +16,7 @@
   "pwaDescription": "Een showcase platform voor lokale ondernemers.",
   "ogImageAlt": "Mijn Platform – Showcase",
   "contentDir": "default",
-  "showcaseDir": "default-showcase"
+  "showcaseDir": "default-showcase",
+  "showThemeSlider": true,
+  "showLocaleSwitcher": true
 }
