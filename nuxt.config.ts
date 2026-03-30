@@ -1,11 +1,13 @@
 import { defineNuxtConfig } from 'nuxt/config'
 import fs from 'node:fs'
 import path from 'node:path'
+const KNOWN_BUILD_TARGETS = ['goeiekerels']
+
 function getBuildTargetFromCname(): string {
   try {
     const cname = fs.readFileSync(path.resolve('./CNAME'), 'utf-8').trim()
     const name = cname.split('.')[0]
-    return name || 'default'
+    return KNOWN_BUILD_TARGETS.includes(name) ? name : 'default'
   } catch {
     return 'default'
   }
